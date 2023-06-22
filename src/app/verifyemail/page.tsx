@@ -4,20 +4,21 @@ import axios from "axios";
 import Spinner from "@/components/Spinner";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import TokenModel from "@/models/tokenModel";
 
 const VerifyEmail = () => {
   const searchParams = useSearchParams();
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
 
   const verifyEmail = async (token: string) => {
     try {
       setLoading(true);
       await axios.post("/api/users/verifyemail", { token });
       setVerified(true);
-    } catch (error) {
-      setError(true);
+    } catch (error: any) {
+      setError(error.response.data.message);
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,7 @@ const VerifyEmail = () => {
         </h1>
       )}
 
-      {error && <h1 className="error">Something went wrong</h1>}
+      {error !== "" && <h1 className="error">Something went wrong: {error}</h1>}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import UserModel from "@/models/userModel";
 import TokenModel, { emailTypeList } from "@/models/tokenModel";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/config/dbConfig";
+import { isTokenExpired } from "@/helpers/isTokenExpired";
 
 connectDB();
 
@@ -13,6 +14,8 @@ export const POST = async (request: NextRequest) => {
     const { email } = await request.json();
     const user = await UserModel.findOne<IUser>({ email });
     if (!user) throw new Error("User with this email does not exist");
+
+    if (user.isEmailVerified === false) throw new Error("Please verify your email first");
 
     await sendEmail({
       email: user.email,
@@ -32,16 +35,24 @@ export const POST = async (request: NextRequest) => {
 export const PUT = async (request: NextRequest) => {
   try {
     const reqBody = await request.json();
-    const token = reqBody.token;
-    const tokenObj = await TokenModel.findOne<IToken>({ token });
-    if (!tokenObj) throw new Error("Invalid or expired password reset token");
+    const tokenBody = reqBody.token;
 
-    const email = tokenObj.email;
+    const token = await TokenModel.findOne<IToken>({ token: tokenBody });
+    if (!token) {
+      throw new Error("Invalid link");
+    }
+
+    if (isTokenExpired(token)) {
+      throw new Error("Link has expired");
+    }
 
     // hash password
     const hashedPassword = await bcrypt.hash(reqBody.password, 10);
 
-    await UserModel.findOneAndUpdate<IUser>({ email }, { password: hashedPassword });
+    await UserModel.findOneAndUpdate<IUser>({ email: token.email }, { password: hashedPassword });
+
+    // delete token
+    await TokenModel.deleteOne({ token: tokenBody });
 
     return NextResponse.json({ message: "Password reset successful" }, { status: 200 });
   } catch (error: any) {

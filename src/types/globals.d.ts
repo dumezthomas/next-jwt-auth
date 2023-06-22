@@ -11,6 +11,8 @@ declare global {
     token: string;
     email: string;
     emailType: string;
+    date: Date;
+    validity: number;
   }
 }
 

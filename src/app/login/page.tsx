@@ -72,6 +72,7 @@ const Login = () => {
         </button>
 
         <Link href="/register">Dont have an account? Register</Link>
+        <Link href="/resetpassword">Forgot your password? Reset it</Link>
       </div>
     </div>
   );

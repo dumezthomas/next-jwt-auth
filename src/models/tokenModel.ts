@@ -19,8 +19,18 @@ const schema = new Schema<IToken>(
     },
     emailType: {
       type: String,
-      enum: Object.values(emailTypeList),
+      enum: Object.values(emailTypeList), // ["emailVerification", "resetPassword"]
       required: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+      default: Date.now, // now
+    },
+    validity: {
+      type: Number,
+      required: true,
+      default: 2 * 60 * 1000, // 2 minutes
     },
   },
   {

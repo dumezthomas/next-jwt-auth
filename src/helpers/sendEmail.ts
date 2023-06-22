@@ -4,6 +4,10 @@ import bcryptjs from "bcryptjs";
 
 export const sendEmail = async ({ email, emailType }: any) => {
   try {
+    // check if a token already exists in db for this email and delete it
+    // this is to prevent multiple tokens for same email
+    await TokenModel.deleteOne({ email });
+
     const token = await bcryptjs.hash(email, 10);
 
     const newToken = new TokenModel({
